@@ -45,9 +45,26 @@ const routes = [
         path: '/assets',
         name: 'Assets',
         component: () => import('../pages/assets/Assets.vue')
-      }
-
-
+      },{
+        path: '/locations',
+        name: 'Locations',
+        component: () => import('../pages/assets/Location.vue')
+      },
+      {
+        path: '/departments',
+        name: 'Departments',
+        component: () => import('../pages/assets/departments.vue')
+      },
+      {
+        path: '/assignments',
+        name: 'Assignments',
+        component: () => import('../pages/assets/Assign.vue')
+      },
+      // {
+      //   path: '/reports',
+      //   name: 'Reports',
+      //   component: () => import('../pages/reports/Reports.vue')
+      // }
     ]
   }
 ]

@@ -3,7 +3,8 @@ import { ref, onMounted, computed } from 'vue'
 import { 
   Plus, Search, Filter, HardDrive, 
   MoreHorizontal, Loader2, AlertCircle,
-  Edit2, Trash2, History
+  Edit2, Trash2, History, Download,
+  ChevronDown
 } from 'lucide-vue-next'
 import { AssetService } from '../../services/asset.service'
 import AssetModal from '../../components/AssetModal.vue'
@@ -13,13 +14,31 @@ const assets = ref([])
 const isLoading = ref(false)
 const isModalOpen = ref(false)
 const searchQuery = ref('')
+const selectedCategory = ref('')
 
-// Dropdown Data (In a real app, fetch these from your respective services onMounted)
-const categories = ref([{ id: 1, name: 'Laptops' }, { id: 2, name: 'Servers' }, { id: 3, name: 'Furniture' }])
-const assetTypes = ref([{ id: 1, name: 'Hardware' }, { id: 2, name: 'Software/License' }])
-const locations = ref([{ id: 1, name: 'Head Office' }, { id: 2, name: 'Warehouse' }])
-const departments = ref([{ id: 1, name: 'IT' }, { id: 2, name: 'Finance' }, { id: 3, name: 'HR' }])
-const depreciationMethods = ref([{ id: 1, name: 'Straight Line' }, { id: 2, name: 'Reducing Balance' }])
+// Dropdown Data
+const categories = ref([
+  { id: 1, name: 'Laptops' }, 
+  { id: 2, name: 'Servers' }, 
+  { id: 3, name: 'Furniture' }
+])
+const assetTypes = ref([
+  { id: 1, name: 'Hardware' }, 
+  { id: 2, name: 'Software/License' }
+])
+const locations = ref([
+  { id: 1, name: 'Head Office' }, 
+  { id: 2, name: 'Warehouse' }
+])
+const departments = ref([
+  { id: 1, name: 'IT' }, 
+  { id: 2, name: 'Finance' }, 
+  { id: 3, name: 'HR' }
+])
+const depreciationMethods = ref([
+  { id: 1, name: 'Straight Line' }, 
+  { id: 2, name: 'Reducing Balance' }
+])
 
 // Fetch Data
 const fetchAssets = async () => {
@@ -40,7 +59,7 @@ const handleCreateAsset = async (formData) => {
   try {
     await AssetService.createAsset(formData)
     isModalOpen.value = false
-    await fetchAssets() // Refresh the list
+    await fetchAssets()
   } catch (error) {
     alert("Error creating asset: " + (error.response?.data?.message || error.message))
   }
@@ -59,122 +78,247 @@ const handleDelete = async (id) => {
 
 // Filter Logic
 const filteredAssets = computed(() => {
-  if (!searchQuery.value) return assets.value
-  return assets.value.filter(asset => 
-    asset.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    asset.serial_number?.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
+  let filtered = assets.value
+
+  if (searchQuery.value) {
+    filtered = filtered.filter(asset => 
+      asset.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      asset.serial_number?.toLowerCase().includes(searchQuery.value.toLowerCase())
+    )
+  }
+
+  if (selectedCategory.value) {
+    filtered = filtered.filter(asset => asset.category_id == selectedCategory.value)
+  }
+
+  return filtered
 })
+
+// Stats computation
+const stats = computed(() => ({
+  total: assets.value.length,
+  active: assets.value.filter(a => a.status === 'active').length,
+  maintenance: assets.value.filter(a => a.status === 'maintenance').length,
+  totalValue: assets.value.reduce((sum, a) => sum + Number(a.purchase_cost || 0), 0)
+}))
 
 onMounted(fetchAssets)
 </script>
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    
+    <!-- Header Section -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-white tracking-tight">Asset Inventory</h1>
-        <p class="text-neutral-400 text-sm">Manage and track organization assets and their lifecycles.</p>
+        <h1 class="text-3xl font-bold text-slate-900">Asset Inventory</h1>
+        <p class="text-slate-500 mt-1">Manage and track organizational assets and their lifecycles</p>
       </div>
-      <button 
-        @click="isModalOpen = true"
-        class="bg-green-600 hover:bg-green-500 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold transition-all shadow-lg shadow-green-600/20 active:scale-95"
-      >
-        <Plus class="w-5 h-5" />
-        Add New Asset
-      </button>
-    </div>
-
-    <div class="flex flex-col lg:flex-row gap-4 items-center justify-between bg-neutral-800/40 p-4 rounded-2xl border border-neutral-700/50 backdrop-blur-md">
-      <div class="relative w-full lg:w-96">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-        <input 
-          v-model="searchQuery"
-          type="text" 
-          placeholder="Search by name or serial number..." 
-          class="w-full bg-neutral-900 border border-neutral-700 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:ring-1 focus:ring-green-500 outline-none transition-all"
+      <div class="flex gap-3">
+        <button class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm flex items-center gap-2">
+          <Download class="w-4 h-4" />
+          Export
+        </button>
+        <button 
+          @click="isModalOpen = true"
+          class="px-5 py-2.5 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 transition-all shadow-lg shadow-violet-600/30 hover:shadow-violet-600/40 flex items-center gap-2"
         >
-      </div>
-      
-      <div class="flex items-center gap-3 w-full lg:w-auto">
-        <select class="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2 text-sm text-neutral-300 outline-none focus:border-green-500">
-          <option value="">All Categories</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-        </select>
-        <button class="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-700 rounded-xl text-sm text-neutral-400 hover:text-white transition-colors">
-          <Filter class="w-4 h-4" />
-          More Filters
+          <Plus class="w-5 h-5" />
+          Add New Asset
         </button>
       </div>
     </div>
 
-    <div class="bg-neutral-800/40 border border-neutral-700/50 rounded-2xl overflow-hidden backdrop-blur-md">
-      <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 text-neutral-500">
-        <Loader2 class="w-10 h-10 animate-spin text-green-500 mb-4" />
-        <p>Loading asset registry...</p>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 bg-violet-50 rounded-lg">
+            <HardDrive class="w-5 h-5 text-violet-600" />
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Assets</p>
+            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ stats.total }}</p>
+          </div>
+        </div>
       </div>
 
-      <div v-else-if="filteredAssets.length === 0" class="flex flex-col items-center justify-center py-20 text-neutral-500">
-        <AlertCircle class="w-12 h-12 mb-4 opacity-20" />
-        <p>No assets found. Try adjusting your search or add a new one.</p>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 bg-emerald-50 rounded-lg">
+            <HardDrive class="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active</p>
+            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ stats.active }}</p>
+          </div>
+        </div>
       </div>
 
-      <table v-else class="w-full text-left border-collapse">
-        <thead class="bg-neutral-900/50 text-neutral-400 text-xs uppercase tracking-wider">
-          <tr>
-            <th class="px-6 py-4 font-semibold">Asset Info</th>
-            <th class="px-6 py-4 font-semibold">Serial No</th>
-            <th class="px-6 py-4 font-semibold">Status</th>
-            <th class="px-6 py-4 font-semibold">Purchase Date</th>
-            <th class="px-6 py-4 font-semibold">Cost</th>
-            <th class="px-6 py-4 font-semibold text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-neutral-700/50 text-neutral-300">
-          <tr v-for="asset in filteredAssets" :key="asset.id" class="hover:bg-neutral-700/20 transition-colors group">
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-neutral-700 flex items-center justify-center">
-                  <HardDrive class="w-5 h-5 text-green-400" />
-                </div>
-                <div>
-                  <div class="text-white font-medium">{{ asset.name }}</div>
-                  <div class="text-xs text-neutral-500">ID: #{{ asset.id }}</div>
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 font-mono text-xs">{{ asset.serial_number || 'N/A' }}</td>
-            <td class="px-6 py-4">
-              <span 
-                :class="{
-                  'bg-green-500/10 text-green-500 border-green-500/20': asset.status === 'active',
-                  'bg-yellow-500/10 text-yellow-500 border-yellow-500/20': asset.status === 'maintenance',
-                  'bg-neutral-500/10 text-neutral-500 border-neutral-500/20': asset.status === 'inactive'
-                }"
-                class="px-2 py-1 rounded-md text-[10px] font-bold uppercase border"
-              >
-                {{ asset.status }}
-              </span>
-            </td>
-            <td class="px-6 py-4 text-sm">{{ asset.purchase_date }}</td>
-            <td class="px-6 py-4 text-sm font-medium text-white">
-              ${{ Number(asset.purchase_cost).toLocaleString() }}
-            </td>
-            <td class="px-6 py-4 text-right">
-              <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button @click="handleDelete(asset.id)" class="p-2 hover:bg-red-500/10 rounded-lg text-neutral-400 hover:text-red-500" title="Delete">
-                  <Trash2 class="w-4 h-4" />
-                </button>
-                <button class="p-2 hover:bg-neutral-700 rounded-lg text-neutral-400 hover:text-white" title="View Details">
-                  <History class="w-4 h-4" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 bg-amber-50 rounded-lg">
+            <HardDrive class="w-5 h-5 text-amber-600" />
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Maintenance</p>
+            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ stats.maintenance }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 bg-cyan-50 rounded-lg">
+            <HardDrive class="w-5 h-5 text-cyan-600" />
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Value</p>
+            <p class="text-2xl font-bold text-slate-900 mt-0.5">${{ stats.totalValue.toLocaleString() }}</p>
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- Search and Filters -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
+        <div class="relative flex-1 lg:max-w-md">
+          <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <input 
+            v-model="searchQuery"
+            type="text" 
+            placeholder="Search by name or serial number..." 
+            class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-12 pr-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+          >
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <select 
+              v-model="selectedCategory"
+              class="appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pr-10 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent cursor-pointer"
+            >
+              <option value="">All Categories</option>
+              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+            </select>
+            <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          </div>
+          
+          <button class="flex items-center gap-2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-all">
+            <Filter class="w-4 h-4" />
+            <span class="hidden sm:inline">More Filters</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assets Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      
+      <!-- Loading State -->
+      <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 text-slate-500">
+        <Loader2 class="w-10 h-10 animate-spin text-violet-600 mb-4" />
+        <p class="text-sm font-medium">Loading asset registry...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="filteredAssets.length === 0" class="flex flex-col items-center justify-center py-20 text-slate-500">
+        <div class="p-4 bg-slate-100 rounded-full mb-4">
+          <AlertCircle class="w-8 h-8 text-slate-400" />
+        </div>
+        <p class="text-sm font-medium text-slate-900 mb-1">No assets found</p>
+        <p class="text-sm text-slate-500">Try adjusting your search or add a new asset</p>
+      </div>
+
+      <!-- Table -->
+      <div v-else class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200">
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Asset Info</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Serial No</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Purchase Date</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Cost</th>
+              <th class="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            <tr 
+              v-for="asset in filteredAssets" 
+              :key="asset.id" 
+              class="hover:bg-slate-50 transition-colors group"
+            >
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center">
+                    <HardDrive class="w-5 h-5 text-violet-600" />
+                  </div>
+                  <div>
+                    <div class="text-sm font-semibold text-slate-900">{{ asset.name }}</div>
+                    <div class="text-xs text-slate-500">ID: #{{ asset.id }}</div>
+                  </div>
+                </div>
+              </td>
+              
+              <td class="px-6 py-4">
+                <span class="text-sm font-mono text-slate-700">{{ asset.serial_number || 'N/A' }}</span>
+              </td>
+              
+              <td class="px-6 py-4">
+                <span 
+                  :class="{
+                    'bg-emerald-50 text-emerald-600 border-emerald-200': asset.status === 'active',
+                    'bg-amber-50 text-amber-600 border-amber-200': asset.status === 'maintenance',
+                    'bg-slate-100 text-slate-600 border-slate-200': asset.status === 'inactive'
+                  }"
+                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border"
+                >
+                  {{ asset.status }}
+                </span>
+              </td>
+              
+              <td class="px-6 py-4">
+                <span class="text-sm text-slate-700">{{ asset.purchase_date }}</span>
+              </td>
+              
+              <td class="px-6 py-4">
+                <span class="text-sm font-semibold text-slate-900">
+                  ${{ Number(asset.purchase_cost).toLocaleString() }}
+                </span>
+              </td>
+              
+              <td class="px-6 py-4">
+                <div class="flex justify-end items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    class="p-2 hover:bg-violet-50 rounded-lg text-slate-400 hover:text-violet-600 transition-colors" 
+                    title="View History"
+                  >
+                    <History class="w-4 h-4" />
+                  </button>
+                  <button 
+                    class="p-2 hover:bg-cyan-50 rounded-lg text-slate-400 hover:text-cyan-600 transition-colors" 
+                    title="Edit"
+                  >
+                    <Edit2 class="w-4 h-4" />
+                  </button>
+                  <button 
+                    @click="handleDelete(asset.id)"
+                    class="p-2 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-colors" 
+                    title="Delete"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Asset Modal -->
     <AssetModal 
       :is-open="isModalOpen"
       :categories="categories"
