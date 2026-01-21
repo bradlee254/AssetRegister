@@ -60,6 +60,11 @@ const routes = [
         name: 'Assignments',
         component: () => import('../pages/assets/Assign.vue')
       },
+      {
+        path: '/licences',
+        name: 'Licences',
+        component: () => import('../pages/assets/License.vue')
+      }
       // {
       //   path: '/reports',
       //   name: 'Reports',
