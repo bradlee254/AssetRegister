@@ -7,21 +7,20 @@ import {
   ChevronDown
 } from 'lucide-vue-next'
 import { AssetService } from '../../services/asset.service'
+import { CategoryService } from '../../services/category.service' // Import Category Service
 import AssetModal from '../../components/AssetModal.vue'
 
 // State Management
 const assets = ref([])
 const isLoading = ref(false)
+const isSubmitting = ref(false) // Added for loading states
 const isModalOpen = ref(false)
 const searchQuery = ref('')
 const selectedCategory = ref('')
+const selectedAsset = ref(null) // Track asset being edited
 
-// Dropdown Data
-const categories = ref([
-  { id: 1, name: 'Laptops' }, 
-  { id: 2, name: 'Servers' }, 
-  { id: 3, name: 'Furniture' }
-])
+// Dropdown Data - Initially empty, populated from API
+const categories = ref([])
 const assetTypes = ref([
   { id: 1, name: 'Hardware' }, 
   { id: 2, name: 'Software/License' }
@@ -41,27 +40,59 @@ const depreciationMethods = ref([
 ])
 
 // Fetch Data
-const fetchAssets = async () => {
+const fetchInitialData = async () => {
   isLoading.value = true
   try {
-    const response = await AssetService.getAssets()
-    console.log("Fetched assets:", response)
-    assets.value = Array.isArray(response) ? response : response.data || []
+    // Run both requests in parallel
+    const [assetRes, catRes] = await Promise.all([
+      AssetService.getAssets(),
+      CategoryService.listCategories()
+    ])
+    
+    // Handle Asset Response
+    assets.value = Array.isArray(assetRes) ? assetRes : assetRes.data || []
+    
+    // Handle Category Response
+    if (Array.isArray(catRes)) {
+      categories.value = catRes;
+    } else {
+      categories.value = catRes.data?.data || catRes.data || [];
+    }
   } catch (error) {
-    console.error("Failed to load assets:", error)
+    console.error("Failed to load data:", error)
   } finally {
     isLoading.value = false
   }
 }
 
-// Handle Form Submission
-const handleCreateAsset = async (formData) => {
+// Modal Triggers
+const openCreateModal = () => {
+  selectedAsset.value = null
+  isModalOpen.value = true
+}
+
+const openEditModal = (asset) => {
+  selectedAsset.value = { ...asset }
+  isModalOpen.value = true
+}
+
+// Handle Form Submission (Create and Update)
+const handleAssetSubmit = async (formData) => {
+  isSubmitting.value = true
   try {
-    await AssetService.createAsset(formData)
+    if (selectedAsset.value) {
+      // Update logic
+      await AssetService.updateAsset(selectedAsset.value.id, formData)
+    } else {
+      // Create logic
+      await AssetService.createAsset(formData)
+    }
     isModalOpen.value = false
-    await fetchAssets()
+    await fetchInitialData() // Refresh list
   } catch (error) {
-    alert("Error creating asset: " + (error.response?.data?.message || error.message))
+    alert("Operation failed: " + (error.response?.data?.message || error.message))
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -69,7 +100,7 @@ const handleDelete = async (id) => {
   if (confirm('Are you sure you want to delete this asset?')) {
     try {
       await AssetService.deleteAsset(id)
-      await fetchAssets()
+      await fetchInitialData()
     } catch (error) {
       console.error("Delete failed", error)
     }
@@ -102,13 +133,12 @@ const stats = computed(() => ({
   totalValue: assets.value.reduce((sum, a) => sum + Number(a.purchase_cost || 0), 0)
 }))
 
-onMounted(fetchAssets)
+onMounted(fetchInitialData)
 </script>
 
 <template>
   <div class="space-y-6">
     
-    <!-- Header Section -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bold text-slate-900">Asset Inventory</h1>
@@ -120,7 +150,7 @@ onMounted(fetchAssets)
           Export
         </button>
         <button 
-          @click="isModalOpen = true"
+          @click="openCreateModal"
           class="px-5 py-2.5 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 transition-all shadow-lg shadow-violet-600/30 hover:shadow-violet-600/40 flex items-center gap-2"
         >
           <Plus class="w-5 h-5" />
@@ -129,7 +159,6 @@ onMounted(fetchAssets)
       </div>
     </div>
 
-    <!-- Stats Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex items-center gap-3">
@@ -180,7 +209,6 @@ onMounted(fetchAssets)
       </div>
     </div>
 
-    <!-- Search and Filters -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
       <div class="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
         <div class="relative flex-1 lg:max-w-md">
@@ -213,16 +241,13 @@ onMounted(fetchAssets)
       </div>
     </div>
 
-    <!-- Assets Table -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       
-      <!-- Loading State -->
       <div v-if="isLoading" class="flex flex-col items-center justify-center py-20 text-slate-500">
         <Loader2 class="w-10 h-10 animate-spin text-violet-600 mb-4" />
         <p class="text-sm font-medium">Loading asset registry...</p>
       </div>
 
-      <!-- Empty State -->
       <div v-else-if="filteredAssets.length === 0" class="flex flex-col items-center justify-center py-20 text-slate-500">
         <div class="p-4 bg-slate-100 rounded-full mb-4">
           <AlertCircle class="w-8 h-8 text-slate-400" />
@@ -231,7 +256,6 @@ onMounted(fetchAssets)
         <p class="text-sm text-slate-500">Try adjusting your search or add a new asset</p>
       </div>
 
-      <!-- Table -->
       <div v-else class="overflow-x-auto">
         <table class="w-full">
           <thead>
@@ -298,6 +322,7 @@ onMounted(fetchAssets)
                     <History class="w-4 h-4" />
                   </button>
                   <button 
+                    @click="openEditModal(asset)"
                     class="p-2 hover:bg-cyan-50 rounded-lg text-slate-400 hover:text-cyan-600 transition-colors" 
                     title="Edit"
                   >
@@ -318,16 +343,17 @@ onMounted(fetchAssets)
       </div>
     </div>
 
-    <!-- Asset Modal -->
     <AssetModal 
       :is-open="isModalOpen"
+      :loading="isSubmitting"
+      :initial="selectedAsset"
       :categories="categories"
       :asset-types="assetTypes"
       :locations="locations"
       :departments="departments"
       :depreciation-methods="depreciationMethods"
       @close="isModalOpen = false"
-      @submit="handleCreateAsset"
+      @submit="handleAssetSubmit"
     />
   </div>
 </template>
