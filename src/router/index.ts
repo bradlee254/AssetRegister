@@ -64,6 +64,11 @@ const routes = [
         path: '/licences',
         name: 'Licences',
         component: () => import('../pages/assets/License.vue')
+      },
+      {
+        path: '/users',
+        name: 'Users',
+        component: () => import('../pages/users/user.vue')
       }
       // {
       //   path: '/reports',
