@@ -36,7 +36,8 @@ const handleLogout = () => {
 const mainNav = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', color: 'violet' },
   { to: '/reports', icon: FileText, label: 'Reports', color: 'cyan' },
-  { to: '/audit-logs', icon: Clock, label: 'Audit Logs', color: 'amber' }
+  { to: '/audit-logs', icon: Clock, label: 'Audit Logs', color: 'amber' },
+  { to: '/users', icon: UserCheck, label: 'Users', color: 'emerald' }
 ]
 
 const inventoryItems = [
@@ -158,6 +159,7 @@ const isInventoryRoute = () => {
             </router-link>
           </div>
         </div>
+        
 
       </nav>
 

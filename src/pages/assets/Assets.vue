@@ -19,7 +19,7 @@ const searchQuery = ref('')
 const selectedCategory = ref('')
 const selectedAsset = ref(null) // Track asset being edited
 
-// Dropdown Data - Initially empty, populated from API
+
 const categories = ref([])
 const assetTypes = ref([
   { id: 1, name: 'Hardware' }, 
@@ -51,8 +51,6 @@ const fetchInitialData = async () => {
     
     // Handle Asset Response
     assets.value = Array.isArray(assetRes) ? assetRes : assetRes.data || []
-    
-    // Handle Category Response
     if (Array.isArray(catRes)) {
       categories.value = catRes;
     } else {
