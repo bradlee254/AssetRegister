@@ -6,6 +6,7 @@ import {
 } from 'lucide-vue-next'
 import { UserService } from '../../services/user.service'
 import UserModal from '../../components/UserModal.vue'
+import { useToast } from '../../composables/useToast'
 
 const users = ref([])
 const isLoading = ref(false)
@@ -13,14 +14,15 @@ const isSubmitting = ref(false)
 const isModalOpen = ref(false)
 const searchQuery = ref('')
 const selectedUser = ref(null)
+const { addToast } = useToast()
 
 const fetchUsers = async () => {
   isLoading.value = true
   try {
     const res = await UserService.getUsers()
-    // Handle array or paginated response
     users.value = res.data?.data || res.data || res || []
   } catch (error) {
+    addToast('Failed to load users', 'error')
     console.error("Failed to load users", error)
   } finally {
     isLoading.value = false
@@ -44,6 +46,7 @@ const handleUserSubmit = async (formData) => {
       await UserService.updateUser(selectedUser.value.id, formData)
     } else {
       await UserService.createUser(formData)
+      addToast('User created successfully', 'success')
     }
     await fetchUsers()
     isModalOpen.value = false
@@ -57,10 +60,11 @@ const handleUserSubmit = async (formData) => {
 const deleteUser = async (id) => {
   if (confirm('Are you sure you want to remove this user?')) {
     try {
+        addToast('User removed successfully', 'success')
       await UserService.deleteUser(id)
       await fetchUsers()
     } catch (error) {
-      alert("Delete failed")
+      addToast('Error removing user', 'error')
     }
   }
 }

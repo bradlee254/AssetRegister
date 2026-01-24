@@ -81,7 +81,7 @@ const isInventoryRoute = () => {
               <Shield class="w-7 h-7 text-white" />
             </div>
             <div v-if="!isNavMinimized">
-              <h1 class="text-lg font-bold text-slate-900">AssetReg</h1>
+              <h1 class="text-lg font-bold text-slate-900">AssetRegister</h1>
               <p class="text-xs text-slate-500">Command Center</p>
             </div>
           </div>

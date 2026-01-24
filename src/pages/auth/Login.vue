@@ -3,20 +3,24 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Shield, Mail, Lock, LogIn } from 'lucide-vue-next'
 import { AuthService } from '../../services/auth.service'
+import { useToast } from '../../composables/useToast'
 
 const router = useRouter()
 const form = ref({ email: '', password: '' })
 const isLoading = ref(false)
 const errorMessage = ref('')
+let { addToast } = useToast()
 
 const handleLogin = async () => {
   isLoading.value = true
   errorMessage.value = ''
   try {
     await AuthService.login(form.value)
+    addToast('Login successful', 'success') 
     router.push('/dashboard')
   } catch (error) {
     errorMessage.value = 'Invalid credentials. Please try again.'
+    addToast('Invalid credentials', 'error')
   } finally {
     isLoading.value = false
   }
@@ -35,9 +39,9 @@ const handleLogin = async () => {
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-6 bg-neutral-800 p-8 rounded-2xl border border-neutral-700 shadow-2xl">
-        <div v-if="errorMessage" class="p-4 bg-red-500/10 border border-red-500/50 text-red-500 rounded-xl text-sm text-center">
+        <!-- <div v-if="errorMessage" class="p-4 bg-red-500/10 border border-red-500/50 text-red-500 rounded-xl text-sm text-center">
           {{ errorMessage }}
-        </div>
+        </div> -->
 
         <div>
           <label class="block text-sm font-medium text-neutral-300 mb-2">Email Address</label>
