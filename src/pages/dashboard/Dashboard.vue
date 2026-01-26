@@ -71,7 +71,7 @@ const getColorClasses = (color) => {
         <button class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
           Export Report
         </button>
-        <button class="px-5 py-2.5 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 transition-all shadow-lg shadow-violet-600/30 hover:shadow-violet-600/40">
+        <button class="px-5 py-2.5 bg-green-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 transition-all shadow-lg shadow-violet-600/30 hover:shadow-violet-600/40">
           Generate Audit
         </button>
       </div>
@@ -109,7 +109,7 @@ const getColorClasses = (color) => {
           </div>
           <router-link 
             to="/audit-logs" 
-            class="flex items-center gap-1 text-violet-600 text-sm font-semibold hover:text-violet-700 transition-colors"
+            class="flex items-center gap-1 text-green-600 text-sm font-semibold hover:text-gree-700 transition-colors"
           >
             View All
             <ArrowRight class="w-4 h-4" />

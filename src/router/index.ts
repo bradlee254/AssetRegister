@@ -69,6 +69,11 @@ const routes = [
         path: '/users',
         name: 'Users',
         component: () => import('../pages/users/user.vue')
+      },
+      {
+        path: '/assetTypes',
+        name: 'Asset Types',
+        component: () => import('../pages/assets/AssetType.vue')
       }
       // {
       //   path: '/reports',

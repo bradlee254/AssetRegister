@@ -34,7 +34,7 @@ const handleLogout = () => {
 }
 
 const mainNav = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', color: 'violet' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', color: 'green' },
   { to: '/reports', icon: FileText, label: 'Reports', color: 'cyan' },
   { to: '/audit-logs', icon: Clock, label: 'Audit Logs', color: 'amber' },
   { to: '/users', icon: UserCheck, label: 'Users', color: 'emerald' }
@@ -46,12 +46,13 @@ const inventoryItems = [
   { to: '/locations', icon: MapPin, label: 'Locations' },
   { to: '/departments', icon: Building2, label: 'Departments' },
   { to: '/assignments', icon: UserCheck, label: 'Assignments' },
-  { to: '/licences', icon: FolderTree, label: 'Licences' }
+  { to: '/licences', icon: FolderTree, label: 'Licences' },
+  { to: '/assetTypes', icon: Package, label: 'Asset Types' },
 ]
 
 const getColorClasses = (color, isActive) => {
   const colors = {
-    violet: isActive ? 'bg-violet-500 text-white' : 'bg-violet-500/10 text-violet-600 hover:bg-violet-500/20',
+    violet: isActive ? 'bg-green-500 text-white' : 'bg-green-500/10 text-green-600 hover:bg-green-500/20',
     cyan: isActive ? 'bg-cyan-500 text-white' : 'bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500/20',
     amber: isActive ? 'bg-amber-500 text-white' : 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20',
     emerald: isActive ? 'bg-emerald-500 text-white' : 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
@@ -77,7 +78,7 @@ const isInventoryRoute = () => {
       <div class="p-6 border-b border-slate-200">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3" :class="isNavMinimized ? 'justify-center' : ''">
-            <div class="w-12 h-12 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-lg">
               <Shield class="w-7 h-7 text-white" />
             </div>
             <div v-if="!isNavMinimized">
@@ -132,7 +133,7 @@ const isInventoryRoute = () => {
             :class="isInventoryRoute() ? 'bg-emerald-500 text-white' : 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'"
           >
             <div class="flex items-center gap-3">
-              <Package class="w-5 h-5 flex-shrink-0" />
+              <Package class="w-5 h-5 shrink-0" />
               <span v-if="!isNavMinimized">Inventory</span>
             </div>
             <ChevronRight 
@@ -167,7 +168,7 @@ const isInventoryRoute = () => {
       <div class="p-4 border-t border-slate-200">
         <div v-if="!isNavMinimized" class="mb-3">
           <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-            <div class="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-sm">
+            <div class="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center font-bold text-white text-sm">
               {{ AuthService.user?.name?.charAt(0) || 'A' }}
             </div>
             <div class="flex-1 min-w-0">
