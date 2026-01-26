@@ -7,7 +7,12 @@ import {
   ChevronDown
 } from 'lucide-vue-next'
 import { AssetService } from '../../services/asset.service'
-import { CategoryService } from '../../services/category.service' // Import Category Service
+import { CategoryService } from '../../services/category.service'
+import { AssetTypesService } from '../../services/assetTypes.service'
+import { LocationService } from '../../services/location.service'
+import { DepartmentService } from '../../services/department.service'
+import { DepreciationService } from '../../services/depreciation.service'
+import { useToast } from '../../composables/useToast'
 import AssetModal from '../../components/AssetModal.vue'
 
 // State Management

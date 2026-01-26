@@ -48,6 +48,7 @@ const inventoryItems = [
   { to: '/assignments', icon: UserCheck, label: 'Assignments' },
   { to: '/licences', icon: FolderTree, label: 'Licences' },
   { to: '/assetTypes', icon: Package, label: 'Asset Types' },
+  { to: '/depreciation', icon: Shield, label: 'Depreciation' }
 ]
 
 const getColorClasses = (color, isActive) => {

@@ -74,6 +74,11 @@ const routes = [
         path: '/assetTypes',
         name: 'Asset Types',
         component: () => import('../pages/assets/AssetType.vue')
+      },
+      {
+        path: '/depreciation',
+        name: 'Depreciation',
+        component: () => import('../pages/assets/Depreciation.vue')
       }
       // {
       //   path: '/reports',
