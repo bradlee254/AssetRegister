@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// Pages
+
 import Welcome from '../pages/auth/welcome.vue'
 import Login from '../pages/auth/Login.vue'
 import Register from '../pages/auth/Register.vue' 
@@ -79,6 +79,16 @@ const routes = [
         path: '/depreciation',
         name: 'Depreciation',
         component: () => import('../pages/assets/Depreciation.vue')
+      },
+      {
+        path: '/audit-logs',
+        name: 'Audit Logs',
+        component: () => import('../pages/audit log/audit.vue')
+      },
+      {
+        path: '/notifications',
+        name: 'Notifications',
+        component: () => import('../pages/notifications/Notifications.vue')
       }
       // {
       //   path: '/reports',

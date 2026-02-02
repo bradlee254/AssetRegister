@@ -37,7 +37,9 @@ const mainNav = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', color: 'green' },
   { to: '/reports', icon: FileText, label: 'Reports', color: 'cyan' },
   { to: '/audit-logs', icon: Clock, label: 'Audit Logs', color: 'amber' },
-  { to: '/users', icon: UserCheck, label: 'Users', color: 'emerald' }
+  { to: '/users', icon: UserCheck, label: 'Users', color: 'emerald' },
+  { to: '/notifications', icon: Bell, label: 'Notifications', color: 'violet' },
+
 ]
 
 const inventoryItems = [
